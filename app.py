@@ -16,8 +16,6 @@ def home_page():
 
     """Shows homepage with start survey button"""
     
-    RESPONSES = []
-    print("This is the response after returning back from end of survey", RESPONSES)
     return render_template('start_survey.html', survey=survey)
 
 
@@ -25,11 +23,8 @@ def home_page():
 def start_survey():
 
     """Clears RESPONSES of previous answers, sets to an empty list.  Then redirects to first question of survey."""
-    print('Is this printing?')
     
-    # RESPONSES = []
-    
-    # print('RESPONSES', RESPONSES)
+    RESPONSES.clear()
 
     return redirect('/questions/0')
 
@@ -39,10 +34,8 @@ def handle_answer():
 
     """Retrieves answer from form, appends answer to RESPONSES list and redirects to next question"""
 
-    print('RESPONSES before answer appended', RESPONSES)
     answer = request.form["answer"]
     RESPONSES.append(answer)
-    print('RESPONSES after answer appended', RESPONSES)
 
     if len(RESPONSES) < len(survey.questions):
         num = len(RESPONSES)
@@ -77,5 +70,5 @@ def display_question(qnum):
 def survey_complete_msg():
 
     """"Displays survey complete message once survey has been completed"""
-    print(RESPONSES)
+   
     return render_template('survey-complete.html')

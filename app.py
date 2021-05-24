@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect
+from flask import Flask, render_template, request, redirect, flash
 from flask_debugtoolbar import DebugToolbarExtension
 from surveys import satisfaction_survey as survey
 
@@ -16,6 +16,8 @@ def home_page():
 
     """Shows homepage with start survey button"""
     
+    RESPONSES.clear()
+    
     return render_template('start_survey.html', survey=survey)
 
 
@@ -23,7 +25,7 @@ def home_page():
 def start_survey():
 
     """Clears RESPONSES of previous answers, sets to an empty list.  Then redirects to first question of survey."""
-    
+
     RESPONSES.clear()
 
     return redirect('/questions/0')
@@ -51,19 +53,38 @@ def display_question(qnum):
 
     """Takes you to the first question of the survey after the start button is clicked"""
     
-    question = survey.questions[qnum]
-    num = qnum
-
+    # breakpoint()
     if RESPONSES is None:
+        flash("Please click Start Survey!")
         return redirect('/')
-    
-    if len(RESPONSES) == len(survey.questions):
+
+    elif len(RESPONSES) == len(survey.questions):
+        flash("You have already completed the survey, thank you!")
+        flash("If you'd like to take another survey, please click Return Home!")
         return redirect('/survey-complete')
 
-    if len(RESPONSES) != num:
+    elif len(RESPONSES) == 0 and qnum > 0 and qnum < len(survey.questions):
+        flash("Please click Start Survey and take questions in order!")
+        return redirect('/')
+
+    elif len(RESPONSES) == 0 and qnum >= len(survey.questions):
+        flash(f"There is only { len(survey.questions) } questions in the survey. Question #{qnum + 1} does not exist.")
+        flash("Please click Start Survey and take survey questions in order!")
+        return redirect('/')
+
+    elif len(RESPONSES) > 0 and len(RESPONSES) < len(survey.questions) and qnum >= len(survey.questions):
+        flash(f"There is only { len(survey.questions) } questions in the survey. Question #{qnum + 1} does not exist.")
+        flash("Please take survey questions in order!")
         return redirect(f'/questions/{ len(RESPONSES) }')
 
-    return render_template('question.html', num=num, question=question)
+    elif len(RESPONSES) != qnum:
+        flash("Please take survey questions in order!")
+        return redirect(f'/questions/{ len(RESPONSES) }')
+    
+    
+    question = survey.questions[qnum]
+
+    return render_template('question.html', num=qnum, question=question)
 
 
 @app.route('/survey-complete')
